@@ -174,11 +174,17 @@ def validate_cookie(cookie: str) -> Tuple[bool, str]:
         return False, "Cookie 为空"
     cookie = cookie.strip()
     keys = {part.split("=", 1)[0].strip() for part in cookie.split(";") if part.strip()}
-    if "koa:sess" not in keys:
-        return False, "Cookie 缺少必要字段: koa:sess"
-    if "koa:sess.sig" not in keys:
-        return False, "Cookie 缺少必要字段: koa:sess.sig"
-    return True, ""
+    required_key_pairs = (
+        ("gld:sess", "gld:sess.sig"),
+        ("koa:sess", "koa:sess.sig"),  # 兼容旧格式
+    )
+    for sess_key, sig_key in required_key_pairs:
+        if sess_key in keys and sig_key in keys:
+            return True, ""
+        if sess_key in keys or sig_key in keys:
+            missing = [k for k in (sess_key, sig_key) if k not in keys]
+            return False, f"Cookie 缺少必要字段: {', '.join(missing)}"
+    return False, "Cookie 缺少必要字段: gld:sess/gld:sess.sig（兼容 koa:sess/koa:sess.sig）"
 
 
 def is_retryable(exc: Exception) -> bool:
