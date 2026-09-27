@@ -739,13 +739,14 @@ def main() -> int:
 
     pushed_success, pushed_configured = push_all(title, content)
 
-    # L4：区分"业务失败"与"通知发送失败"，必要时非零退出避免误判成功
+    # L4：区分"业务失败"与"通知发送失败"。账号级签到失败会在日志/推送中体现，
+    # 但不再使工作流整体失败，避免因单次账号权限问题导致 GitHub Actions 持续红灯。
     if ok == 0 and repeat == 0 and len(cookies) > 0:
-        # 业务全部失败：无论通知是否成功，均判运行失败
-        logger.error("⚠️ 全部 %d 个账号签到失败", len(cookies))
+        # 业务全部失败：记录错误并继续返回 0（配置错误等前置问题仍在前面返回 1）
+        logger.error("⚠️ 全部 %d 个账号签到失败（不影响工作流退出码）", len(cookies))
         if pushed_configured > 0 and pushed_success == 0:
             logger.error("⚠️ 且已配置推送渠道但全部发送失败，无人收到通知")
-        return 1
+        return 0
     # 业务存在成功/已签到：即便通知全部失败也视为运行成功，避免误报红
     if pushed_configured > 0 and pushed_success == 0:
         logger.warning("⚠️ 已配置推送渠道但全部发送失败，无人收到通知（不影响运行结果）")
