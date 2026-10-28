@@ -842,7 +842,7 @@ def main() -> int:
             if idx < len(cookies):
                 time.sleep(random.uniform(MIN_DELAY, MAX_DELAY))
 
-    title = f"GLaDOS 签到完成 ✅{ok} ❌{fail} 🔄{repeat}"
+    title = f"GLaDOS ✅{ok} ❌{fail} 🔄{repeat}"
     content = "\n".join(lines)
 
     # #4：汇总内容过长时统一截断，避免部分推送渠道因超限静默失败
