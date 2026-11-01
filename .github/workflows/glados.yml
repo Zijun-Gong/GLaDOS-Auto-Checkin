@@ -31,7 +31,18 @@ jobs:
         run: pip install "requests==2.32.3" --no-cache-dir
 
       - name: Run checkin
-        run: python checkin.py
+        run: |
+          for attempt in 1 2; do
+            echo "Checkin attempt ${attempt}/2"
+            if python checkin.py; then
+              exit 0
+            fi
+            if [ "${attempt}" -lt 2 ]; then
+              echo "Checkin failed, waiting 60s before retry..."
+              sleep 60
+            fi
+          done
+          exit 1
         env:
           COOKIES: ${{ secrets.COOKIES }}
           SENDKEY: ${{ secrets.SENDKEY }}
